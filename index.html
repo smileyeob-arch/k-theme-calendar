@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>K 상승테마 캘린더</title>
+<style>
+:root{color-scheme:dark;--bg:#0b111e;--panel:#141e30;--line:#29354a;--text:#ecf3fc;--sub:#a8b7ce;--up:#fa7784;--down:#68b9ff;--a:#79aaff;--sat:#182c47}
+*{box-sizing:border-box}body{margin:0;font:14px/1.5 system-ui,-apple-system,"Malgun Gothic",sans-serif;color:var(--text);background:radial-gradient(ellipse at 20% 0%,#1a3151 0%,var(--bg) 55%) fixed}
+main{max-width:1240px;margin:0 auto;padding:26px 18px 50px}h1,h2,h3,p{margin:0}header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}h1{font-size:clamp(22px,3vw,32px);letter-spacing:-.7px}.subtitle{color:var(--sub);margin-top:6px}.top-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+button{font:inherit;cursor:pointer;color:var(--text)}.control{padding:10px 13px;background:#22324b;border:1px solid #405572;border-radius:10px}.control:hover,.control:focus-visible{background:#345075;outline:2px solid #7baaf8;outline-offset:1px}
+.panel{background:rgba(20,30,48,.94);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 10px 32px #0002}.calendar-header{display:flex;align-items:center;justify-content:space-between;padding:17px 20px;gap:12px}.calendar-header h2{font-size:21px}.weekdays,.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}.weekdays{background:#1d293d;border-block:1px solid var(--line)}.weekdays span{text-align:center;padding:12px 0;color:var(--sub);font-size:12px}.weekdays span:first-child{color:#ef8c95}.weekdays span:last-child{color:#92bffc}
+.day,.blank{min-width:0;min-height:118px;border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:transparent;text-align:left;padding:9px;display:flex;flex-direction:column;gap:6px}.day:nth-child(7n){border-right:0}.day:hover,.day:focus-visible{background:#273c5a;outline:1px solid var(--a);outline-offset:-2px}.day.selected{background:#283f60;box-shadow:inset 0 0 0 2px var(--a)}.day.sat{background:var(--sat)}.day.sat.selected{background:#29456c}.day.empty{color:#7b8ca3}.day .number{font-weight:700;font-size:13px}.day .number.sunday{color:#f28e98}.day .number.saturday{color:#9bc4ff}.entry{display:flex;flex-direction:column;line-height:1.35;gap:2px;min-width:0}.entry .name{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:12px}.entry .gain{color:var(--up);font-size:12px;font-weight:750}.entry .small{color:#b8d5fa;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.day .nothing{font-size:11px;color:#70839c}
+.legend{padding:13px 20px;color:var(--sub);font-size:12px}.small-label{color:#91bbfa;font-size:11px;font-weight:700;letter-spacing:.03em}.details{margin-top:16px;padding:22px}.details-header{display:flex;align-items:start;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:16px}.details h2{font-size:20px}.muted{color:var(--sub);font-size:12px}.tag{display:inline-block;border:1px solid #486a95;border-radius:999px;color:#b9d6ff;padding:4px 9px;font-size:11px}.notice{background:#1d2a3f;border-radius:9px;padding:10px 12px;color:#c4d2e6;font-size:12px;margin:12px 0}.table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:600px}th,td{text-align:left;padding:13px 10px;border-bottom:1px solid var(--line);vertical-align:top}th{font-weight:600;color:var(--sub);font-size:12px}td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}td strong{font-size:14px}.stocks{color:var(--sub);font-size:12px;margin-top:4px}.up{color:var(--up);font-weight:700}.down{color:var(--down);font-weight:700}.no-data{padding:46px 14px;text-align:center;color:var(--sub)}.empty-state{margin:12px 0 0;color:#d0bda2}.stat{font-size:12px;color:var(--sub)}
+@media(max-width:720px){main{padding:16px 9px}.day,.blank{padding:6px 4px;min-height:89px;gap:5px}.entry .name{font-size:10px}.entry .gain{font-size:11px}.entry .small{font-size:9px}.day .number{font-size:12px}.calendar-header{padding:12px}.details{padding:16px 12px}.legend{padding:10px}.days .entry:nth-of-type(3){display:none}}
+</style>
+</head>
+<body>
+<main>
+<header><div><h1>K 상승테마 캘린더</h1><p class="subtitle">일별 상승률 · 테마 거래대금 · 금요일까지의 주간 강세 → 토요일 요약</p></div><div class="top-actions"><span id="status" class="stat">저장 기록 불러오는 중</span><button class="control" id="today">이번 달</button></div></header>
+<section class="panel" aria-label="테마 달력">
+ <div class="calendar-header"><h2 id="month"></h2><div class="top-actions"><button class="control" id="prev" aria-label="이전 달">◀</button><button class="control" id="next" aria-label="다음 달">▶</button></div></div>
+ <div class="weekdays"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+ <div class="days" id="days"></div>
+ <div class="legend">월~금: 상승테마 상위 2개 · 상승률(%) / 토요일: 주간 상승률 합산 1위와 주도종목. 자료 없는 날은 비워둡니다.</div>
+</section>
+<section class="panel details" aria-live="polite" aria-label="선택한 날짜 상세보기"><div class="details-header"><div><h2 id="detail-title">날짜를 선택하세요</h2><p id="detail-meta" class="muted"></p></div><span class="tag" id="coverage">원본 데이터 확인</span></div><div id="detail-body" class="no-data">상세 기록을 불러오는 중입니다.</div></section>
+<p class="empty-state" id="error"></p>
+</main>
+<script>
+(function(){
+"use strict";
+var data={days:{},weeks:{}};var nowParts=new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
+function kst(part){return Number(nowParts.find(function(v){return v.type===part}).value)}
+var today=new Date(kst("year"),kst("month")-1,kst("day"));var viewing=new Date(today.getFullYear(),today.getMonth(),1);var chosen=ymd(today);
+var nodes={month:document.getElementById("month"),days:document.getElementById("days"),title:document.getElementById("detail-title"),meta:document.getElementById("detail-meta"),body:document.getElementById("detail-body"),coverage:document.getElementById("coverage"),status:document.getElementById("status")};
+function ymd(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function el(tag,cls,text){var a=document.createElement(tag);if(cls)a.className=cls;if(text!==undefined)a.textContent=String(text);return a}
+function change(n){viewing=new Date(viewing.getFullYear(),viewing.getMonth()+n,1);chosen=ymd(viewing);render()}
+function percent(x){if(x===null||x===undefined||!Number.isFinite(Number(x)))return "—";var v=Number(x);return (v>0?"+":"")+v.toFixed(2)+"%"}
+function trade(value,unit){if(value===null||value===undefined||!Number.isFinite(Number(value)))return "미수집";
+ var v=Number(value),sign=v<0?"-":"";v=Math.abs(v);
+ if(unit==="백만원"){var uk=v/100;if(uk>=10000)return sign+(uk/10000).toFixed(2)+"조 원";return sign+uk.toLocaleString("ko-KR",{maximumFractionDigits:1})+"억 원"}
+ if(unit==="원"){if(v>=1e12)return sign+(v/1e12).toFixed(2)+"조 원";if(v>=1e8)return sign+(v/1e8).toLocaleString("ko-KR",{maximumFractionDigits:1})+"억 원";return sign+v.toLocaleString("ko-KR")+"원"}
+ return sign+v.toLocaleString("ko-KR")+" (원문 · 단위 미확인)"}
+function render(){
+ nodes.month.textContent=viewing.getFullYear()+"년 "+(viewing.getMonth()+1)+"월";
+ nodes.days.replaceChildren();
+ var first=new Date(viewing.getFullYear(),viewing.getMonth(),1);var count=new Date(viewing.getFullYear(),viewing.getMonth()+1,0).getDate();var offset=first.getDay();var total=Math.ceil((offset+count)/7)*7;
+ for(var i=0;i<total;i++){var d=i-offset+1;if(d<1||d>count){nodes.days.appendChild(el("div","blank"));continue}
+ var date=new Date(viewing.getFullYear(),viewing.getMonth(),d),key=ymd(date),sat=date.getDay()===6,day=data.days[key],week=data.weeks[key];
+ var button=el("button","day"+(sat?" sat":"")+(chosen===key?" selected":"")+(day||week?"":" empty"));button.type="button";button.setAttribute("aria-label",key+" 기록 보기");button.appendChild(el("span","number"+(sat?" saturday":date.getDay()===0?" sunday":""),d));
+ if(sat && week && week.theme){button.appendChild(el("div","small-label","🏆 주간 1위"));var w=el("div","entry");w.appendChild(el("span","name",week.theme));w.appendChild(el("span","gain",(week.score>0?"+":"")+Number(week.score).toFixed(2)+"p 합산"));w.appendChild(el("span","small",week.stock||"종목 정보 없음"));button.appendChild(w)}
+ else if(day && Array.isArray(day.themes) && day.themes.length && date.getDay()!==0 && !sat){day.themes.slice(0,2).forEach(function(t){var e=el("div","entry");e.appendChild(el("span","name",t.name));e.appendChild(el("span","gain",percent(t.rate_pct)));button.appendChild(e)})}
+ else if(!sat){button.appendChild(el("span","nothing",day?"상승 테마 없음":""))}
+ button.addEventListener("click",function(k){return function(){chosen=k;render()}}(key));nodes.days.appendChild(button)
+ }
+ showDetails(chosen)
+}
+function showDetails(key){
+ var date=new Date(Number(key.slice(0,4)),Number(key.slice(5,7))-1,Number(key.slice(8,10)));
+ var sat=date.getDay()===6,weekly=sat?data.weeks[key]:null,day=data.days[key];
+ nodes.title.textContent=key+(weekly?" · 주간 강세":" · 일별 상승테마");
+ nodes.body.replaceChildren();nodes.coverage.textContent=weekly?"기록된 거래일 기준":day?(day.scope||"수집 기록"):"자료 없음";
+ if(weekly){nodes.meta.textContent="월~금 기록 "+weekly.days_collected+"일 · 관측된 테마만 비교 · 주간 합산 수익률 점수";if(weekly.note)nodes.body.appendChild(el("p","notice",weekly.note));renderRows(weekly.rankings||[],"weekly");return}
+ if(!day||!Array.isArray(day.themes)||!day.themes.length){nodes.meta.textContent="해당 날짜에 저장된 테마 자료가 없습니다.";nodes.body.appendChild(el("p","no-data","미수집 날짜입니다. 과거 순위를 추측해 채우지 않습니다."));return}
+ nodes.meta.textContent="기록된 테마 "+day.themes.length+"개 · "+(day.source||"수집 파일");
+ if(day.note)nodes.body.appendChild(el("p","notice",day.note));
+ renderRows(day.themes,"daily")
+}
+function renderRows(rows,kind){
+ if(!rows.length){nodes.body.appendChild(el("div","no-data","해당 기간에 분석 가능한 데이터가 없습니다."));return}
+ var wrap=el("div","table-wrap"),table=el("table");var thead=el("thead"),heading=el("tr");
+ ["순위","테마 / 주도종목",kind==="weekly"?"상승률 합산":"상승률","테마 거래대금"].forEach(function(s,i){heading.appendChild(el("th",i>1?"num":"",s))});thead.appendChild(heading);table.appendChild(thead);var tbody=el("tbody");
+ rows.slice(0,10).forEach(function(t,i){
+ var tr=el("tr");tr.appendChild(el("td","",i+1));var name=el("td");name.appendChild(el("strong","",t.name||t.theme||"미상"));
+ var stocks=kind==="weekly"?(t.stock?[t.stock]:[]):(t.stocks||[]).map(function(s){return s.name+(s.rate_pct!==null&&s.rate_pct!==undefined?" "+percent(s.rate_pct):"")});
+ name.appendChild(el("div","stocks",stocks.length?stocks.slice(0,3).join(" · "):"주도종목 자료 없음"));tr.appendChild(name);
+ var rate=kind==="weekly"?t.score:t.rate_pct;tr.appendChild(el("td","num "+(Number(rate)>=0?"up":"down"),kind==="weekly"?(rate===undefined?"—":(Number(rate)>0?"+":"")+Number(rate).toFixed(2)+"p"):percent(rate)));
+ tr.appendChild(el("td","num",trade(t.turnover,t.turnover_unit)));tbody.appendChild(tr)
+ });table.appendChild(tbody);wrap.appendChild(table);nodes.body.appendChild(wrap);
+ if(kind==="daily")nodes.body.appendChild(el("p","notice","거래대금은 구성종목 중 수집된 종목의 부분합일 수 있습니다. 하나의 종목이 여러 테마에 중복 포함될 수 있으며, 단위가 검증되지 않은 값은 원문 그대로 표시합니다."));
+ else nodes.body.appendChild(el("p","notice","주간 상승률은 관측된 일별 테마 상승률 합산 점수입니다. 실제 기간 누적수익률이 아니며, 데이터 누락일에는 순위가 바뀔 수 있습니다."))
+}
+document.getElementById("prev").addEventListener("click",function(){change(-1)});
+document.getElementById("next").addEventListener("click",function(){change(1)});
+document.getElementById("today").addEventListener("click",function(){viewing=new Date(today.getFullYear(),today.getMonth(),1);chosen=ymd(today);render()});
+fetch("./data/history.json?ts="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw Error("HTTP "+r.status);return r.json()}).then(function(json){
+ data.days=json&&json.days||{};data.weeks=json&&json.weeks||{};nodes.status.textContent=Object.keys(data.days).length+"일 저장됨";render()
+}).catch(function(err){nodes.status.textContent="데이터 로드 실패";document.getElementById("error").textContent="JSON 파일을 읽지 못했습니다: "+err.message+" / 로컬 실행은 python -m http.server 8000을 사용하세요.";render()});
+})();
+</script>
+</body></html>
