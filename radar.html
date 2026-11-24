@@ -145,7 +145,8 @@ function table(rows){
   tr.appendChild(element("td","num",t.recent+"회"));
   tr.appendChild(element("td","num "+(t.avg!==null&&t.avg>=0?"up":"down"),t.avg===null?"—":(t.avg>=0?"+":"")+t.avg.toFixed(2)+"%*"));
   tr.appendChild(element("td","",t.leader?t.leader.name+" ("+t.leader.days+"회)": "미수집"));
-  tr.appendChild(element("td","",t.leader&&priceAnalysis(t.leader.code)?"일봉 분석 가능":"미계산"));
+  var observed=t.leader?priceAnalysis(t.leader.code):null;
+  tr.appendChild(element("td","",observed?observed.signal+" · "+observed.asof:"미계산"));
   root.appendChild(tr)
  });
  if(!rows.length){var tr=element("tr"),td=element("td","empty","조회 기간 데이터 없음");td.colSpan=6;tr.appendChild(td);root.appendChild(tr)}
@@ -163,7 +164,14 @@ function priceAnalysis(code){
  var last=days.at(-1),close=+last.close,ma=days.slice(-20).reduce((a,x)=>a+(+x.close),0)/20;
  var f382=low+(high-low)*0.382,f236=low+(high-low)*0.236;
  var nearest=Math.abs(close-f382)<=Math.abs(close-f236)?"0.382":"0.236",level=nearest==="0.382"?f382:f236;
- return {close,ma,low,high,f382,f236,zero:low,nearest,near:Math.abs(close-level)/level<=0.03,asof:last.date,below:close<ma,source:"일봉 공급 데이터"};
+ var near=Math.abs(close-level)/level<=0.03,nearMA=Math.abs(close-ma)/ma<=0.04;
+ var prev=days.at(-2),bounce=close>+last.open&&(!prev||close>=+prev.close);
+ var vol=days.slice(-20).map(x=>Number(x.volume)||0),last5=vol.slice(-5),prev15=vol.slice(0,-5);
+ var five=last5.reduce((a,b)=>a+b,0)/last5.length,previous=prev15.reduce((a,b)=>a+b,0)/prev15.length;
+ var dryVolume=previous>0&&five<=previous*0.8;
+ var signal=near&&nearMA&&dryVolume&&bounce?"하단·20선 반등 관찰":near&&nearMA?"피보·20선 근접":near?"피보 하단 근접":"관찰 대기";
+ return {close,ma,low,high,f382,f236,zero:low,nearest,near,nearMA,bounce,dryVolume,signal,
+  asof:last.date,below:close<ma,source:"일봉 공급 데이터"};
 }
 function detail(t){
  var node=$("detail");node.replaceChildren();node.appendChild(element("h3","",t.name));
@@ -176,9 +184,9 @@ function detail(t){
   var r=element("tr"),p=priceAnalysis(s.code);
   r.appendChild(element("td","",s.name+" ("+s.code+")"));r.appendChild(element("td","",s.days+"회"));
   r.appendChild(element("td","",p?"종가 "+Math.round(p.close).toLocaleString()+" / "+[p.f382,p.f236,p.zero].map(x=>Math.round(x).toLocaleString()).join(" · ")+(p.near?" · 하단 인접":""):"미계산 · 가격 자료 없음"));
-  r.appendChild(element("td","",p?(p.below?"20일선 아래":"20일선 위")+" · "+p.asof:"미계산"));table.appendChild(r);
+  r.appendChild(element("td","",p?(p.below?"20일선 아래":"20일선 위")+" · "+p.asof+" · "+p.signal+" · 거래량감소 "+(p.dryVolume?"예":"아니오"):"미계산"));table.appendChild(r);
  });wrap.appendChild(table);node.appendChild(wrap);
- node.appendChild(element("p","warning","피보 기준: 최근 최대 120거래일의 저점→이후 고점 중 지정된 상승파동을 자동 근사. 실제 매매에서는 차트에서 파동 기준점을 직접 확인해야 하며, 20일선 이탈 자체가 매수 신호는 아님."));
+ node.appendChild(element("p","warning","피보 기준: 최근 최대 120거래일의 저점→이후 고점 중 지정된 상승파동을 자동 근사. 실제 매매에서는 차트에서 파동 기준점을 직접 확인해야 함. 가격선 ±3%, 20일선 ±4%, 최근 5일 거래량이 이전 15일 평균의 80% 이하, 당일 상승 양봉을 '반등 관찰' 조건으로 사용하며 매수 신호가 아님."));
 }
 document.querySelectorAll("[data-month]").forEach(b=>b.addEventListener("click",()=>{
  months=Number(b.dataset.month);document.querySelectorAll("[data-month]").forEach(x=>x.classList.toggle("active",x===b));result();
