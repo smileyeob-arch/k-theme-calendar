@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "updated_at": null,
+  "stocks": {},
+  "note": "종목별 공개용 일봉 OHLCV 데이터만 입력합니다. 키움 인증정보·계좌정보는 절대 업로드하지 마세요."
+}
