@@ -152,7 +152,7 @@ function pie(top){
  function point(radius,angle){var a=angle*Math.PI/180;return [cx+radius*Math.cos(a),cy+radius*Math.sin(a)]}
  function node(tag,attrs,text){var z=document.createElementNS(ns,tag);Object.entries(attrs||{}).forEach(([k,v])=>z.setAttribute(k,v));if(text!==undefined)z.textContent=text;return z}
  top.forEach((t,i)=>{
-  var degrees=360*t.count/sum,start=current,end=current+degrees;current=end,large=degrees>180?1:0;
+  var degrees=360*t.count/sum,start=current,end=current+degrees,large=degrees>180?1:0;current=end;
   var p1=point(r2,start),p2=point(r2,end),p3=point(r1,end),p4=point(r1,start);
   var d="M "+p1.join(" ")+" A "+r2+" "+r2+" 0 "+large+" 1 "+p2.join(" ")+" L "+p3.join(" ")+" A "+r1+" "+r1+" 0 "+large+" 0 "+p4.join(" ")+" Z";
   var path=node("path",{d,fill:COLORS[i],"class":"slice",tabindex:"0"});path.appendChild(node("title",{},t.name+": "+t.count+"일, "+(t.count/sum*100).toFixed(1)+"%"));
