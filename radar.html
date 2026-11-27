@@ -16,6 +16,26 @@ main{max-width:1240px;margin:auto;padding:24px 16px 48px}h1,h2,h3,p{margin:0}h1{
 .list{display:grid;gap:10px}.candidate{width:100%;text-align:left;cursor:pointer;border-radius:12px;border:1px solid var(--line);background:#1b2a41;color:var(--ink);padding:13px}.candidate:hover,.candidate:focus-visible{background:#2b4468;outline:1px solid #82b8ff}.row{display:flex;justify-content:space-between;align-items:center;gap:10px}.candidate strong{font-size:14px}.candidate small{display:block;color:var(--muted);margin-top:3px}
 #detail{min-height:90px}.price{background:#1c2c43;padding:10px;border-radius:8px;margin-top:8px}.empty{padding:22px;text-align:center;color:var(--muted)}.accent{color:#9ac6ff}
 @media(max-width:780px){main{padding:16px 10px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.two{grid-template-columns:1fr}.card{padding:14px}.metric b{font-size:20px}}
+
+/* Donut with legible in-chart labels and deliberate hover focus */
+#pie{width:min(100%,430px);height:auto;aspect-ratio:1;position:relative;margin:14px auto 18px;border-radius:0;background:transparent!important;display:grid;place-items:center}
+#pie svg{width:100%;height:100%;overflow:visible;filter:drop-shadow(0 9px 17px #0006)}
+#pie .slice{stroke:#152136;stroke-width:1.8;cursor:pointer;transition:opacity .18s ease,filter .18s ease}
+#pie .slice:hover,#pie .slice:focus{filter:brightness(1.2);outline:none}
+#pie .arc-name{fill:white;font:700 11px system-ui,'Malgun Gothic',sans-serif;paint-order:stroke;stroke:#0a162c9c;stroke-width:2.5px;stroke-linejoin:round;pointer-events:none}
+#pie .arc-pct{fill:#eff6ff;font:600 10px system-ui,'Malgun Gothic',sans-serif;paint-order:stroke;stroke:#0a162c99;stroke-width:2.5px;pointer-events:none}
+#pie .donut-mid{fill:#0f1b30;stroke:#455d81;stroke-width:1.2}
+#pie .mid-big{fill:#f0f7ff;font:800 22px system-ui,'Malgun Gothic',sans-serif}
+#pie .mid-small{fill:#aec9f3;font:600 10px system-ui,'Malgun Gothic',sans-serif}
+.legend-row{padding:5px 7px;border-radius:8px;cursor:pointer}.legend-row:hover,.legend-row.selected{background:#243c60}
+.candidate.is-selected{background:#233d61;border-color:#87baff;box-shadow:inset 3px 0 #85b6ff}
+.chip-wrap{display:flex;flex-wrap:wrap;gap:6px;margin:9px 0 12px}.chip{border:1px solid #597baf;border-radius:18px;padding:4px 9px;background:#283b59;font-size:11px;color:#d6e6ff}
+.member-head{display:flex;gap:8px;align-items:center;justify-content:space-between;margin:15px 0 7px;flex-wrap:wrap}
+.member-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;max-height:285px;overflow:auto}
+.member-item{padding:9px 10px;background:#1a2b44;border:1px solid #2f496b;border-radius:8px;display:flex;gap:6px;justify-content:space-between;font-size:12px}
+.member-item b{font-size:12px}.member-item small{color:var(--muted)}
+#detail{scroll-margin-top:15px}
+@media(max-width:780px){#pie{width:min(100%,350px)}.member-list{grid-template-columns:1fr}}
 </style></head><body><main>
 <header><h1>K 순환매 레이더</h1><p class="muted">과거 주도력 → 2~4개월 조정 → 피보나치 하단 → 재유입 관찰</p></header>
 <nav class="nav" aria-label="대시보드 메뉴"><a href="./index.html">월간 상승테마 달력</a><a class="active" href="./radar.html" aria-current="page">순환매 레이더</a><span class="hint" id="status">GitHub 저장 기록 조회 중…</span></nav>
@@ -33,14 +53,13 @@ main{max-width:1240px;margin:auto;padding:24px 16px 48px}h1,h2,h3,p{margin:0}h1{
 </section>
 <div class="two" style="margin-top:16px">
  <section class="card"><h2>과거 반복 등장 TOP 6</h2><p class="hint">한 날짜에 같은 산업이 몇 번 기록돼도 1회로 집계</p><div id="pie" aria-label="6개 테마 등장 횟수 비율 원그래프" role="img"></div><div id="legend" class="legend"></div></section>
- <section class="card"><h2>순환매 2차 관찰 후보</h2><p class="hint">과거 등장 빈도가 높았고 최근 30일간의 등장 변화를 비교. 아래 항목은 매수 신호가 아님.</p><div id="candidates" class="list" style="margin-top:12px"></div></section>
+ <section class="card"><h2>순환매 2차 관찰 후보</h2><p class="hint">과거 등장 빈도가 높았고 최근 30일간의 등장 변화를 비교. 아래 항목은 매수 신호가 아님.</p><div id="candidates" class="list" style="margin-top:12px"></div><div id="detail" style="margin-top:16px" class="hint" aria-live="polite">테마를 선택하면 저장된 인포스탁 구성종목을 보여줘.</div></section>
 </div>
 <section class="card"><h2>과거 주도테마 상세</h2>
  <div class="table-wrap"><table><thead><tr><th>산업 / 테마</th><th class="num">과거 등장</th><th class="num">최근 30일</th><th class="num">과거 평균 상승률</th><th>과거 주도종목</th><th>피보/20일선</th></tr></thead><tbody id="ranking"></tbody></table></div>
  <p class="warning">중요: 과거 재구성 기록은 현재 인포스탁 테마 구성종목으로 재계산한 자료이며 당시 공식 상승 순위와 다를 수 있어. 1일에 선별된 테마만 저장된 날짜도 있어 실제 전체 시장의 등장 횟수는 아님. 테마별 구성종목 중복을 산업 단위로 통합하는 규칙도 편의 분류야.</p>
 </section>
-<section class="card" aria-live="polite"><h2>선택 테마 · 종목 피보나치 점검</h2><div id="detail" class="hint">위 표에서 테마를 선택하면 과거 주도종목과 가격 확인 여부가 표시돼.</div>
- <p class="warning">0.382 · 0.236 · 0은 관찰 가격선이며 매수 지시가 아니야. 가격 계산은 별도 일봉 자료 <code>data/prices.json</code>이 있을 때에만 수행해. 자료가 없으면 ‘미계산’으로 표시하고 임의로 추정하지 않아.</p></section>
+
 <p class="hint">원자료: 공개 GitHub <a href="https://github.com/smileyeob-arch/k-theme-calendar/blob/main/data/history.json" style="color:#abd0ff">history.json</a> · 매일 달력 업로드 시 이 화면도 새 JSON을 읽어 갱신돼.</p>
 </main>
 <script>
@@ -113,34 +132,59 @@ function result(){
  $("priceCount").textContent=Object.keys(prices.stocks||{}).length+"개";
  $("period").textContent="과거 관찰: "+from+" ~ "+to+" · 최근 비교: "+last30+" ~ "+latest+" · 실제 데이터 마지막 날짜: "+latest;
  $("status").textContent=Object.keys(db.days).length+"일 저장 / "+latest+" 기준";
- pie(entries.slice(0,6));candidates(entries.slice(0,12));table(entries.slice(0,30));$("detail").textContent="표나 후보를 선택하면 과거 주도종목과 피보나치 분석 가능 여부를 보여줘.";
+ pie(entries.slice(0,6));candidates(entries.slice(0,12));table(entries.slice(0,30));if(entries.length)selectTheme(entries[0]);else $("detail").textContent="과거 데이터가 없습니다.";
+}
+function labelLines(name){
+ var n=String(name||"").replace(/\(.*?\)/g,"").trim();
+ if(n.length<=7)return [n];
+ if(n==="반도체 기판")return ["반도체","기판"];
+ if(n==="2차전지")return [n];
+ var parts=n.split(/[·\/]/).filter(Boolean);if(parts.length>=2)return [parts[0],parts.slice(1).join("·")].slice(0,2);
+ return [n.slice(0,7),n.length>7?n.slice(7,12):""].filter(Boolean);
 }
 function pie(top){
- var pieNode=$("pie"),legend=$("legend");legend.replaceChildren();
- var sum=top.reduce((n,x)=>n+x.count,0),end=0,stops=[];
- top.forEach((x,i)=>{var a=100*end/sum;end+=x.count;var b=100*end/sum;stops.push(COLORS[i]+" "+a.toFixed(2)+"% "+b.toFixed(2)+"%");
- var row=element("div","legend-row"),name=element("span"),dot=element("span","dot");dot.style.background=COLORS[i];name.append(dot,document.createTextNode(x.name));row.append(name,element("strong","",x.count+"일 · "+(x.count/sum*100).toFixed(1)+"%"));legend.appendChild(row);
+ var pieNode=$("pie"),legend=$("legend");pieNode.replaceChildren();legend.replaceChildren();
+ var sum=top.reduce((n,x)=>n+x.count,0);
+ if(!sum){pieNode.textContent="해당 기간 자료 없음";return}
+ var ns="http://www.w3.org/2000/svg",svg=document.createElementNS(ns,"svg");
+ svg.setAttribute("viewBox","0 0 400 400");svg.setAttribute("role","img");svg.setAttribute("aria-label",top.map(x=>x.name+" "+x.count+"일").join(", "));
+ var cx=200,cy=200,r1=90,r2=184,current=-90;
+ function point(radius,angle){var a=angle*Math.PI/180;return [cx+radius*Math.cos(a),cy+radius*Math.sin(a)]}
+ function node(tag,attrs,text){var z=document.createElementNS(ns,tag);Object.entries(attrs||{}).forEach(([k,v])=>z.setAttribute(k,v));if(text!==undefined)z.textContent=text;return z}
+ top.forEach((t,i)=>{
+  var degrees=360*t.count/sum,start=current,end=current+degrees;current=end,large=degrees>180?1:0;
+  var p1=point(r2,start),p2=point(r2,end),p3=point(r1,end),p4=point(r1,start);
+  var d="M "+p1.join(" ")+" A "+r2+" "+r2+" 0 "+large+" 1 "+p2.join(" ")+" L "+p3.join(" ")+" A "+r1+" "+r1+" 0 "+large+" 0 "+p4.join(" ")+" Z";
+  var path=node("path",{d,fill:COLORS[i],"class":"slice",tabindex:"0"});path.appendChild(node("title",{},t.name+": "+t.count+"일, "+(t.count/sum*100).toFixed(1)+"%"));
+  path.addEventListener("click",()=>selectTheme(t));path.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();selectTheme(t)}});
+  svg.appendChild(path);
+  var mid=(start+end)/2,pos=point(137,mid),grp=node("g",{"text-anchor":"middle","aria-hidden":"true"}),lines=labelLines(t.name);
+  var base=pos[1]-((lines.length+1)*12)/2+10;
+  lines.forEach((txt,k)=>grp.appendChild(node("text",{x:pos[0],y:base+k*13,class:"arc-name"},txt)));
+  grp.appendChild(node("text",{x:pos[0],y:base+lines.length*13+1,class:"arc-pct"},t.count+"일 · "+(t.count/sum*100).toFixed(1)+"%"));svg.appendChild(grp);
+  var row=element("div","legend-row");row.tabIndex=0;row.setAttribute("role","button");var name=element("span"),dot=element("span","dot");dot.style.background=COLORS[i];name.append(dot,document.createTextNode(t.name));row.append(name,element("strong","",t.count+"일 · "+(t.count/sum*100).toFixed(1)+"%"));row.addEventListener("click",()=>selectTheme(t));row.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();selectTheme(t)}});legend.appendChild(row)
  });
- pieNode.style.background=stops.length?"conic-gradient("+stops.join(",")+")":"#2c3c54";
- pieNode.setAttribute("aria-label",top.map(x=>x.name+" "+x.count+"회").join(", ")||"데이터 없음");
- if(!top.length)legend.textContent="해당 기간 관측 테마 없음";
+ svg.appendChild(node("circle",{cx,cy,r:r1-3,class:"donut-mid"}));
+ svg.appendChild(node("text",{x:200,y:190,"text-anchor":"middle",class:"mid-big"},"TOP 6"));
+ svg.appendChild(node("text",{x:200,y:209,"text-anchor":"middle",class:"mid-small"},months+"개월 전 순환매"));
+ svg.appendChild(node("text",{x:200,y:225,"text-anchor":"middle",class:"mid-small"},"등장 빈도"));pieNode.appendChild(svg);
 }
 function candidates(rows){
  var root=$("candidates");root.replaceChildren();
  if(!rows.length){root.appendChild(element("div","empty","과거 자료 없음"));return}
  rows.slice(0,6).forEach((t,i)=>{
-  var btn=element("button","candidate");btn.type="button";var line=element("div","row");
+  var btn=element("button","candidate");btn.type="button";btn.dataset.name=t.name;var line=element("div","row");
   line.appendChild(element("strong","",(i+1)+". "+t.name));line.appendChild(element("span","tag","과거 "+t.count+"일"));
   btn.appendChild(line);
   btn.appendChild(element("small","", "최근 30일 "+t.recent+"회 · 과거 주도종목 "+(t.leader?.name||"미수집")+" · 피보 미검증"));
-  btn.addEventListener("click",()=>detail(t));root.appendChild(btn)
+  btn.addEventListener("click",()=>selectTheme(t));root.appendChild(btn)
  })
 }
 function table(rows){
  var root=$("ranking");root.replaceChildren();
  rows.forEach((t,i)=>{
   var tr=element("tr");var a=element("td"),button=element("button","",String(i+1)+". "+t.name);
-  button.type="button";button.addEventListener("click",()=>detail(t));a.appendChild(button);tr.appendChild(a);
+  button.type="button";button.addEventListener("click",()=>selectTheme(t));a.appendChild(button);tr.appendChild(a);
   tr.appendChild(element("td","num",t.count+"회"));
   tr.appendChild(element("td","num",t.recent+"회"));
   tr.appendChild(element("td","num "+(t.avg!==null&&t.avg>=0?"up":"down"),t.avg===null?"—":(t.avg>=0?"+":"")+t.avg.toFixed(2)+"%*"));
@@ -173,20 +217,59 @@ function priceAnalysis(code){
  return {close,ma,low,high,f382,f236,zero:low,nearest,near,nearMA,bounce,dryVolume,signal,
   asof:last.date,below:close<ma,source:"일봉 공급 데이터"};
 }
+function memberData(t){
+ // Use the latest saved original Infostock theme membership by exact name.
+ // Historic reconstructed data contains only leaders; never relabel them as full membership.
+ var names=new Set(t.originalNames),matches=new Map(),available=new Set();
+ var dates=Object.keys(db.days).sort().reverse();
+ for(const d of dates){
+  for(const item of db.days[d]?.themes||[]){
+   if(!names.has(item.name)||available.has(item.name)||!Array.isArray(item.members)||!item.members.length)continue;
+   available.add(item.name);
+   for(const s of item.members){
+    var code=String(s.code||"").replace(/^A/,"").slice(0,6);
+    if(!code||!s.name)continue;
+    var x=matches.get(code)||{code,name:s.name,source:[],asof:d};
+    x.source.push(item.name);matches.set(code,x)
+   }
+  }
+  if(available.size===names.size)break;
+ }
+ return {members:[...matches.values()].sort((a,b)=>a.name.localeCompare(b.name,"ko")),available:[...available]};
+}
+function selectTheme(t){
+ document.querySelectorAll(".candidate").forEach(x=>x.classList.toggle("is-selected",x.dataset.name===t.name));
+ detail(t);
+}
 function detail(t){
- var node=$("detail");node.replaceChildren();node.appendChild(element("h3","",t.name));
- node.appendChild(element("p","muted","과거 등장 "+t.count+"일 · 최근 30일 "+t.recent+"일 · 원래 테마: "+t.originalNames.join(" · ")));
- if(!t.leaders.length){node.appendChild(element("div","price","당시 종목별 리더 목록이 없음. 피보나치 확인 불가."));return}
- var wrap=element("div","table-wrap"),table=element("table");table.style.minWidth="560px";var head=element("tr");
- ["관측 주도종목","과거 등장","피보 0.382 / 0.236 / 0","20일선"].forEach(x=>head.appendChild(element("th","",x)));
- table.appendChild(head);
+ var node=$("detail");node.replaceChildren();
+ var heading=element("div","member-head");heading.appendChild(element("h3","", "선택 테마 상세 · "+t.name));heading.appendChild(element("span","tag","과거 "+t.count+"일"));node.appendChild(heading);
+ node.appendChild(element("p","hint","인포스탁 원래 테마명 · 중복 산업을 묶었다면 해당 세부 테마 구성종목을 합쳐 표시"));
+ var chips=element("div","chip-wrap");t.originalNames.forEach(n=>chips.appendChild(element("span","chip",n)));node.appendChild(chips);
+ var info=memberData(t),leadMap=new Map(t.leaders.map(x=>[x.code,x])),top=info.members;
+ if(top.length){
+  var bar=element("div","member-head");bar.appendChild(element("strong","", "저장된 인포스탁 구성종목 "+top.length+"개"));bar.appendChild(element("span","hint","원본 구성종목 목록 보유: "+info.available.length+"/"+t.originalNames.length+"개 테마"));node.appendChild(bar);
+  var list=element("div","member-list");
+  top.sort((a,b)=>(leadMap.has(b.code)?1:0)-(leadMap.has(a.code)?1:0)||a.name.localeCompare(b.name,"ko")).forEach(s=>{
+   var item=element("div","member-item"),name=element("span");name.appendChild(element("b","",s.name));name.appendChild(element("small","", " "+s.code));item.appendChild(name);
+   item.appendChild(element("small","",leadMap.has(s.code)?"★ 과거 주도":"구성종목"));list.appendChild(item)
+  });node.appendChild(list);
+  var missing=t.originalNames.filter(x=>!info.available.includes(x));
+  if(missing.length)node.appendChild(element("p","warning","아직 구성종목 원본이 없는 테마: "+missing.join(" · ")+" · 표시 목록은 일부일 수 있음"));
+  node.appendChild(element("p","hint","구성종목은 저장된 가장 최신 인포스탁 원본 기록 기반. 3개월 전 당시 구성종목과 다를 수 있음."));
+ }else{
+  node.appendChild(element("div","warning","해당 원래 테마의 전체 구성종목 목록이 GitHub 기록에 없음. 아래는 당시 기록에서 확인된 주도종목만 표시."));
+ }
+ var sub=element("div","member-head");sub.appendChild(element("h3","", "과거 주도종목 · 피보나치 확인"));node.appendChild(sub);
+ if(!t.leaders.length){node.appendChild(element("p","hint","당시 주도종목 기록 없음."));return}
+ var wrap=element("div","table-wrap"),table=element("table");table.style.minWidth="540px";
+ var head=element("tr");["종목","당시 등장","피보나치 0.382 / 0.236 / 0","20일선"].forEach(x=>head.appendChild(element("th","",x)));table.appendChild(head);
  t.leaders.slice(0,5).forEach(s=>{
-  var r=element("tr"),p=priceAnalysis(s.code);
-  r.appendChild(element("td","",s.name+" ("+s.code+")"));r.appendChild(element("td","",s.days+"회"));
-  r.appendChild(element("td","",p?"종가 "+Math.round(p.close).toLocaleString()+" / "+[p.f382,p.f236,p.zero].map(x=>Math.round(x).toLocaleString()).join(" · ")+(p.near?" · 하단 인접":""):"미계산 · 가격 자료 없음"));
-  r.appendChild(element("td","",p?(p.below?"20일선 아래":"20일선 위")+" · "+p.asof+" · "+p.signal+" · 거래량감소 "+(p.dryVolume?"예":"아니오"):"미계산"));table.appendChild(r);
+  var r=element("tr"),p=priceAnalysis(s.code);r.appendChild(element("td","",s.name+" ("+s.code+")"));r.appendChild(element("td","",s.days+"회"));
+  r.appendChild(element("td","",p?"종가 "+Math.round(p.close).toLocaleString()+" / "+[p.f382,p.f236,p.zero].map(x=>Math.round(x).toLocaleString()).join(" · "):"미계산"));
+  r.appendChild(element("td","",p?p.signal+" · "+p.asof:"가격 자료 없음"));table.appendChild(r)
  });wrap.appendChild(table);node.appendChild(wrap);
- node.appendChild(element("p","warning","피보 기준: 최근 최대 120거래일의 저점→이후 고점 중 지정된 상승파동을 자동 근사. 실제 매매에서는 차트에서 파동 기준점을 직접 확인해야 함. 가격선 ±3%, 20일선 ±4%, 최근 5일 거래량이 이전 15일 평균의 80% 이하, 당일 상승 양봉을 '반등 관찰' 조건으로 사용하며 매수 신호가 아님."));
+ node.appendChild(element("p","hint","실제 일봉 미연동 시 피보나치와 20일선은 계산하지 않음. 위 목록은 매수 신호가 아님."));
 }
 document.querySelectorAll("[data-month]").forEach(b=>b.addEventListener("click",()=>{
  months=Number(b.dataset.month);document.querySelectorAll("[data-month]").forEach(x=>x.classList.toggle("active",x===b));result();
